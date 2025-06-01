@@ -14,7 +14,7 @@ export default function WordSearchGame () {
 
    const [gameState, setGameState] = useState<GameState>(() => {
       // Pang-generate puzzle gamit si PuzzleGenerator
-      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12);
+      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
 
       const grid = gridData.map((row, rowIndex) => 
          row.map((letter, colIndex) => ({
@@ -156,7 +156,7 @@ export default function WordSearchGame () {
 
    const resetGame = () => {
       // Generate sng bag-o nga puzzle
-      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12);
+      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
 
       const grid = gridData.map((row, rowIndex) =>
          row.map((letter, colIndex) => ({
@@ -188,7 +188,7 @@ export default function WordSearchGame () {
           FILE: components/Header.tsx
           =============================== */}
          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Word Search</h1>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Wise Ways Word Search</h1>
             <p className="text-gray-600">Find all hidden words using advanced Rabin-Karp algorithm!</p>
          </div>
 
