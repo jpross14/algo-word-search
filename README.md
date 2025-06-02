@@ -1,5 +1,5 @@
 # SE-2236 ALGORITHMS FINAL PROJECT
-### Word Search Puzzle Game that implements Rabin-Karp Algorithm in verifying users answers
+Word Search Puzzle Game that implements Rabin-Karp Algorithm in verifying users answers
 
 ## Getting Started
 
