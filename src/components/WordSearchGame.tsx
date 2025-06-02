@@ -5,29 +5,33 @@ import { useCallback, useRef, useState } from "react";
 import PuzzleGenerator from "@/services/PuzzleGenerator";
 import RabinKarpVerifier from "@/services/RabinKarpVerifier";
 
-export default function WordSearchGame () {
-   // Sample word list
+export default function WordSearchGame() {
+   // const SAMPLE_WORDS = [
+   //    'REACT', 'SCRIPT', 'NEXT', 'CODE', 'WEB', 
+   //    'APP', 'SEARCH', 'WORD', 'GAME', 'FUN'
+   // ];
    const SAMPLE_WORDS = [
-      'REACT', 'SCRIPT', 'NEXT', 'CODE', 'WEB', 
-      'APP', 'SEARCH', 'WORD', 'GAME', 'FUN'
+      'HEEJIN', 'HYUNJIN', 'HASEUL', 'YEOJIN', 'VIVI', 
+      'KIMLIP', 'JINSOUL', 'CHOERRY', 'YVES', 'CHUU', 'GOWON', 'HYEJU'
    ];
 
-   // Color palette for found words
+   // Enhanced color palette with better opacity support
    const WORD_COLORS = [
-      { bg: 'bg-red-200', text: 'text-red-800', border: 'border-red-400', name: 'red' },
-      { bg: 'bg-blue-200', text: 'text-blue-800', border: 'border-blue-400', name: 'blue' },
-      { bg: 'bg-green-200', text: 'text-green-800', border: 'border-green-400', name: 'green' },
-      { bg: 'bg-yellow-200', text: 'text-yellow-800', border: 'border-yellow-400', name: 'yellow' },
-      { bg: 'bg-purple-200', text: 'text-purple-800', border: 'border-purple-400', name: 'purple' },
-      { bg: 'bg-pink-200', text: 'text-pink-800', border: 'border-pink-400', name: 'pink' },
-      { bg: 'bg-indigo-200', text: 'text-indigo-800', border: 'border-indigo-400', name: 'indigo' },
-      { bg: 'bg-teal-200', text: 'text-teal-800', border: 'border-teal-400', name: 'teal' },
-      { bg: 'bg-orange-200', text: 'text-orange-800', border: 'border-orange-400', name: 'orange' },
-      { bg: 'bg-cyan-200', text: 'text-cyan-800', border: 'border-cyan-400', name: 'cyan' }
-   ];
+      { bg: 'bg-pink-300/60', text: 'text-pink-900', border: 'border-pink-400', name: 'pink', rgb: '236, 72, 153' },
+      { bg: 'bg-yellow-300/60', text: 'text-yellow-900', border: 'border-yellow-400', name: 'yellow', rgb: '234, 179, 8' },
+      { bg: 'bg-green-300/60', text: 'text-green-900', border: 'border-green-400', name: 'green', rgb: '34, 197, 94' },
+      { bg: 'bg-orange-400/60', text: 'text-orange-900', border: 'border-orange-500', name: 'orange', rgb: '249, 115, 22' },
+      { bg: 'bg-rose-200/60', text: 'text-rose-900', border: 'border-rose-300', name: 'rose', rgb: '255, 204, 211' },
+      { bg: 'bg-red-300/60', text: 'text-red-900', border: 'border-red-400', name: 'red', rgb: '239, 68, 68' },
+      { bg: 'bg-blue-300/60', text: 'text-blue-900', border: 'border-blue-400', name: 'blue', rgb: '59, 130, 246' },
+      { bg: 'bg-purple-300/60', text: 'text-purple-900', border: 'border-purple-400', name: 'purple', rgb: '147, 51, 234' },
+      { bg: 'bg-fuchsia-300/60', text: 'text-fuchsia-900', border: 'border-fuchsia-400', name: 'fuchsia', rgb: '237, 106, 255' },
+      { bg: 'bg-orange-200/60', text: 'text-orange-900', border: 'border-orange-300', name: 'peach', rgb: '255, 214, 167' },
+      { bg: 'bg-cyan-300/60', text: 'text-cyan-900', border: 'border-cyan-400', name: 'cyan', rgb: '6, 182, 212' },
+      { bg: 'bg-indigo-300/60', text: 'text-indigo-900', border: 'border-indigo-400', name: 'indigo', rgb: '99, 102, 241' },
+   ]; 
 
    const [gameState, setGameState] = useState<GameState>(() => {
-      // Pang-generate puzzle gamit si PuzzleGenerator
       const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
 
       const grid = gridData.map((row, rowIndex) => 
@@ -37,14 +41,14 @@ export default function WordSearchGame () {
             col: colIndex,
             isFound: false,
             isSelected: false,
-            wordIndex: -1 // Track which word this cell belongs to
+            wordIndices: [] // Initialize as empty array
          }))
       );
 
-      const words = SAMPLE_WORDS.map(word => ({ 
+      const words = SAMPLE_WORDS.map((word, index) => ({ 
          word: word.toUpperCase(), 
          found: false,
-         colorIndex: -1 // Track which color this word uses
+         colorIndex: index
       }));
 
       return {
@@ -54,33 +58,80 @@ export default function WordSearchGame () {
          isSelecting: false,
          selectedCells: [],
          startCell: null,
-         foundWordsCount: 0 // Track order of found words
+         foundWordsCount: 0
       };
    });
 
    const gridRef = useRef<HTMLDivElement>(null);
 
-   // Helper function to get the color for a found word
-   const getWordColor = (wordIndex: number) => {
-      const word = gameState.words[wordIndex];
-      if (!word.found || word.colorIndex === -1) return null;
-      return WORD_COLORS[word.colorIndex % WORD_COLORS.length];
+   // Enhanced function to create blended background for overlapping cells
+   const getBlendedBackground = (wordIndices: number[]) => {
+      if (wordIndices.length === 0) return null;
+      if (wordIndices.length === 1) {
+         const color = WORD_COLORS[wordIndices[0] % WORD_COLORS.length];
+         return color;
+      }
+      
+      // For multiple overlapping words, create a gradient
+      const colors = wordIndices.map(idx => WORD_COLORS[idx % WORD_COLORS.length]);
+      const rgbColors = colors.map(c => c.rgb);
+      
+      if (rgbColors.length === 2) {
+         return {
+            style: {
+               background: `linear-gradient(135deg, rgba(${rgbColors[0]}, 0.7) 0%, rgba(${rgbColors[1]}, 0.7) 100%)`,
+               border: '2px solid rgba(0, 0, 0, 0.2)'
+            },
+            text: 'text-gray-900 font-bold'
+         };
+      } else {
+         // For 3+ words, create a more complex gradient
+         const gradientStops = rgbColors.map((rgb, index) => 
+            `rgba(${rgb}, 0.6) ${(index * 100) / (rgbColors.length - 1)}%`
+         ).join(', ');
+         
+         return {
+            style: {
+               background: `linear-gradient(45deg, ${gradientStops})`,
+               border: '2px solid rgba(0, 0, 0, 0.3)'
+            },
+            text: 'text-gray-900 font-bold'
+         };
+      }
    };
 
-   // Helper function to get cell styling
+   // Enhanced cell styling function
    const getCellStyling = (cell: any, isSelected: boolean) => {
-      if (cell.isFound && cell.wordIndex !== -1) {
-         const color = getWordColor(cell.wordIndex);
-         if (color) {
-            return `${color.bg} ${color.text} ${color.border} shadow-sm`;
+      if (cell.isFound && cell.wordIndices.length > 0) {
+         const blendedStyle = getBlendedBackground(cell.wordIndices);
+         if (blendedStyle) {
+            if ('style' in blendedStyle) {
+               // Custom gradient style
+               return {
+                  className: `${blendedStyle.text} shadow-md`,
+                  style: blendedStyle.style
+               };
+            } else {
+               // Single color
+               return {
+                  className: `${blendedStyle.bg} ${blendedStyle.text} ${blendedStyle.border} shadow-sm border-2`,
+                  style: {}
+               };
+            }
          }
       }
       
       if (isSelected) {
-         return 'bg-blue-200 text-blue-800 border-blue-400 shadow-sm';
+         return {
+            className: 'bg-blue-200 text-blue-800 border-blue-400 shadow-sm border-2',
+            style: {}
+         };
       }
       
-      return 'bg-gray-50 hover:bg-gray-100 text-gray-700';
+      return {
+         className: 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-300',
+         style: {}
+      };
    };
 
    // ===============================
@@ -93,7 +144,7 @@ export default function WordSearchGame () {
          startCell: { row, col },
          selectedCells: [{ row, col }]
       }));
-   }, [])
+   }, []);
 
    const handleCellMouseEnter = useCallback((row: number, col: number) => {
       if (!gameState.isSelecting || !gameState.startCell) return;
@@ -102,7 +153,6 @@ export default function WordSearchGame () {
       const deltaRow = row - startRow;
       const deltaCol = col - startCol;
 
-      // Check kng valid sya na straight line direction
       const isValidDirection = deltaRow === 0 || deltaCol === 0 || Math.abs(deltaRow) === Math.abs(deltaCol);
 
       if (isValidDirection) {
@@ -141,11 +191,9 @@ export default function WordSearchGame () {
          return;
       }
 
-      //convert ang grid to string array para magamit sng Rabin-Karp
       const gridStrings = gameState.grid.map(row => row.map(cell => cell.letter));
       const wordList = gameState.words.map(w => w.word);
 
-      // Gamita Rabin-karp to verify ang selection
       const verification = RabinKarpVerifier.verifySelection(
          gridStrings,
          gameState.selectedCells,
@@ -158,18 +206,18 @@ export default function WordSearchGame () {
          );
 
          if (wordIndex !== -1) {
-            // Word found! Update ang state
             setGameState(prev => {
                const newFoundWordsCount = prev.foundWordsCount + 1;
-               const colorIndex = prev.foundWordsCount; // Use current count as color index
+               const colorIndex = prev.foundWordsCount;
 
+               // Enhanced grid update to handle multiple word indices per cell
                const newGrid = prev.grid.map(row => row.map(cell => {
                   const isInPath = prev.selectedCells.some(sc => sc.row === cell.row && sc.col === cell.col);
                   if (isInPath) {
                      return {
                         ...cell,
                         isFound: true,
-                        wordIndex: wordIndex
+                        wordIndices: [...cell.wordIndices, wordIndex] // Add to existing indices
                      };
                   }
                   return cell;
@@ -198,7 +246,6 @@ export default function WordSearchGame () {
          }
       }
 
-      // If word is not found or already found, i-clear lng naton ang selection
       setGameState(prev => ({
          ...prev,
          isSelecting: false,
@@ -208,7 +255,6 @@ export default function WordSearchGame () {
    }, [gameState.isSelecting, gameState.selectedCells, gameState.grid, gameState.words]);
 
    const resetGame = () => {
-      // Generate sng bag-o nga puzzle
       const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
 
       const grid = gridData.map((row, rowIndex) =>
@@ -218,7 +264,7 @@ export default function WordSearchGame () {
             col: colIndex,
             isFound: false,
             isSelected: false,
-            wordIndex: -1
+            wordIndices: []
          }))
       );
 
@@ -244,7 +290,7 @@ export default function WordSearchGame () {
           =============================== */}
          <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">Wise Ways Word Search</h1>
-            <p className="text-gray-600">Find all hidden words using advanced Rabin-Karp algorithm!</p>
+            <p className="text-gray-600">Find all hidden words in the puzzle!</p>
          </div>
 
          {/* ===============================
@@ -274,17 +320,13 @@ export default function WordSearchGame () {
             </button> 
          </div>
 
-         {/* Game Complete Message */}
          {isGameComplete && (
-         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 text-center">
-            🎉 Amazing! You found all words! Final Score: {gameState.score} 🎉
-         </div>
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 text-center">
+               🎉 Amazing! You found all words! Final Score: {gameState.score} 🎉
+            </div>
          )}
          
          <div className="flex flex-col xl:flex-row gap-6">
-            {/* ===============================
-            FILE: components/GameBoard.tsx
-            =============================== */}
             <div className="flex-1">
                <div
                   ref={gridRef}
@@ -296,22 +338,25 @@ export default function WordSearchGame () {
                      {gameState.grid.map((row, rowIndex) =>
                         row.map((cell, colIndex) => {
                            const isSelected = gameState.selectedCells.some(
-                           sc => sc.row === rowIndex && sc.col === colIndex
+                              sc => sc.row === rowIndex && sc.col === colIndex
                            );
                            
+                           const styling = getCellStyling(cell, isSelected);
+                           
                            return (
-                           <div
-                              key={`${rowIndex}-${colIndex}`}
-                              className={`
-                                 w-8 h-8 flex items-center justify-center text-xs font-bold cursor-pointer
-                                 border border-gray-300 transition-all duration-150 rounded
-                                 ${getCellStyling(cell, isSelected)}
-                              `}
-                              onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
-                              onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
-                           >
-                              {cell.letter}
-                           </div>
+                              <div
+                                 key={`${rowIndex}-${colIndex}`}
+                                 className={`
+                                    w-8 h-8 flex items-center justify-center text-xs font-bold cursor-pointer
+                                    transition-all duration-150 rounded
+                                    ${styling.className}
+                                 `}
+                                 style={styling.style}
+                                 onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
+                                 onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
+                              >
+                                 {cell.letter}
+                              </div>
                            );
                         })
                      )}
@@ -326,41 +371,47 @@ export default function WordSearchGame () {
                <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Words to Find</h3>
                   <div className="grid grid-cols-2 xl:grid-cols-1 gap-2">
-                  {gameState.words.map((wordItem, index) => {
-                     const wordColor = wordItem.found ? getWordColor(index) : null;
-                     
-                     return (
-                        <div
-                           key={index}
-                           className={`
-                           p-3 rounded-lg text-sm font-medium transition-all border
-                           ${wordItem.found && wordColor
-                              ? `${wordColor.bg} ${wordColor.text} ${wordColor.border}` 
-                              : 'bg-gray-100 text-gray-700 border-gray-200'
-                           }
-                           `}
-                        >
-                           <div className="flex justify-between items-center">
-                           <span className={wordItem.found ? 'line-through' : ''}>
-                              {wordItem.word}
-                           </span>
-                           {wordItem.found && <span className={wordColor ? wordColor.text : 'text-green-600'}>✓</span>}
+                     {gameState.words.map((wordItem, index) => {
+                        const wordColor = WORD_COLORS[index % WORD_COLORS.length]; // Use word's index directly
+                        
+                        return (
+                           <div
+                              key={index}
+                              className={`
+                                 p-3 rounded-lg text-sm font-medium transition-all border
+                                 ${wordItem.found && wordColor
+                                    ? `${wordColor.bg} ${wordColor.text} ${wordColor.border}` 
+                                    : 'bg-gray-100 text-gray-700 border-gray-200'
+                                 }
+                              `}
+                           >
+                              <div className="flex justify-between items-center">
+                                 <span className={wordItem.found ? 'line-through' : ''}>
+                                    {wordItem.word}
+                                 </span>
+                                 {wordItem.found && <span className={wordColor ? wordColor.text : 'text-green-600'}>✓</span>}
+                              </div>
                            </div>
-                        </div>
-                     );
-                  })}
+                        );
+                     })}
                   </div>
                </div>
 
-               {/* Color Legend */}
                <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-                  <h4 className="text-sm font-semibold text-gray-800 mb-3">Color Legend</h4>
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                     {WORD_COLORS.slice(0, Math.min(WORD_COLORS.length, gameState.words.length)).map((color, index) => (
-                        <div key={index} className={`${color.bg} ${color.text} ${color.border} border rounded px-2 py-1 text-center`}>
-                           {index + 1}. {color.name}
-                        </div>
-                     ))}
+                  <h4 className="text-sm font-semibold text-gray-800 mb-3">Color Features</h4>
+                  <div className="space-y-2 text-xs text-gray-600">
+                     <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-gradient-to-r from-red-300/60 to-blue-300/60 rounded border"></div>
+                        <span>Overlapping words create gradients</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-green-300/60 rounded border"></div>
+                        <span>Single words use semi-transparent colors</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-gradient-to-r from-yellow-300/60 via-purple-300/60 to-pink-300/60 rounded border"></div>
+                        <span>Multiple overlaps create complex blends</span>
+                     </div>
                   </div>
                </div>
 
@@ -372,9 +423,8 @@ export default function WordSearchGame () {
                   <ul className="space-y-1">
                      <li>• Click and drag to select words</li>
                      <li>• Words can go in any direction</li>
-                     <li>• Words can be forwards or backwards</li>
-                     <li>• Each found word gets a unique color</li>
-                     <li>• Uses Rabin-Karp for fast verification</li>
+                     <li>• Overlapping words create beautiful gradients</li>
+                     <li>• Each word gets a unique base color</li>
                      <li>• Find all words to win!</li>
                   </ul>
                </div>

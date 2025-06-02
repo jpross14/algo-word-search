@@ -4,6 +4,7 @@ export interface Cell {
    col: number;
    isFound: boolean;
    isSelected: boolean;
+   wordIndices: number[]; // Changed to array to track multiple words
 }
 
 export interface WordItem {
