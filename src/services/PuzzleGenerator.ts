@@ -9,7 +9,7 @@ export default class PuzzleGenerator {
    }
 
    // create empty grid (waay random letters)
-   static generateGrid(size: number = 10): string[][] {
+   static generateGrid(size: number): string[][] {
       const grid: string[][] = [];
       for (let i = 0; i < size; i++) {
          const row: string[] = [];
@@ -80,7 +80,7 @@ export default class PuzzleGenerator {
    }
 
    // pang-generate sng complete puzzle na na-place na ang mga words kag filled na ang empty cells
-   static generatePuzzle(words: string[], gridSize: number = 10): { grid: string[][], placedWords: string[], failedWords: string[] } {
+   static generatePuzzle(words: string[], gridSize: number): { grid: string[][], placedWords: string[], failedWords: string[] } {
       const grid = this.generateGrid(gridSize);
       const placedWords: string[] = [];
       const failedWords: string[] = [];
@@ -106,7 +106,7 @@ export default class PuzzleGenerator {
    }
 
    // Alternative method - pang-generate lang sang grid with words, waay random letters pa
-   static generateGridWithWords(words: string[], gridSize: number = 10): { grid: string[][], placedWords: string[], failedWords: string[] } {
+   static generateGridWithWords(words: string[], gridSize: number): { grid: string[][], placedWords: string[], failedWords: string[] } {
       const grid = this.generateGrid(gridSize);
       const placedWords: string[] = [];
       const failedWords: string[] = [];

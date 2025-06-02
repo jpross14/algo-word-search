@@ -16,11 +16,11 @@ export const WORD_CATEGORIES = {
    },
    'SINGERS': {
       name: 'Singers',
-      words: ['TAYLOR', 'RIHANNA', 'JANET', 'GAGA', 'MARIAH', 'ARIANA', 'CELINE', 'WHITNEY', 'BEYONCE', 'SABRINA', 'OLIVIA'],
+      words: ['TAYLOR', 'RIHANNA', 'JANET', 'HAYLEY', 'GAGA', 'MARIAH', 'ARIANA', 'CELINE', 'WHITNEY', 'BEYONCE', 'SABRINA', 'OLIVIA'],
       icon: '🎤'
    },
    'TECH': {
-      name: 'Technology',
+      name: 'Tech',
       words: ['COMPUTER', 'PHONE', 'INTERNET', 'CODE', 'PROGRAM', 'DATA', 'ALGORITHM', 'SOFTWARE', 'HARDWARE', 'NETWORK', 'CLOUD', 'API'],
       icon: '💻'
    },
@@ -34,6 +34,11 @@ export const WORD_CATEGORIES = {
       words: ['PIZZA', 'BURGER', 'PASTA', 'SUSHI', 'SALAD', 'SOUP', 'BREAD', 'CHEESE', 'CHICKEN', 'RICE', 'NOODLE', 'CAKE'],
       icon: '🍕'
    },
+   'PINOYFOOD': {
+      name: 'Pinoy Food',
+      words: ['PANCIT', 'MENUDO', 'SOPAS', 'TINOLA', 'ADOBO', 'POCHERO', 'HALOHALO', 'LUMPIA', 'SINIGANG'],
+      icon: '🥭'
+   },
    'MUSIC': {
       name: 'Music',
       words: ['GUITAR', 'PIANO', 'DRUM', 'VIOLIN', 'TRUMPET', 'FLUTE', 'BASS', 'MELODY', 'RHYTHM', 'HARMONY', 'CHORD', 'BEAT'],
@@ -41,7 +46,7 @@ export const WORD_CATEGORIES = {
    },
    'SPECIAL': {
       name: 'Special',
-      words: ['THANK', 'YOU', 'SIR', 'FOR', 'BEING', 'OUR', 'TEACHER'],
+      words: ['THANK', 'YOU', 'SIR', 'FOR', 'BEING', 'OUR', 'TEACHER', 'GRATEFUL', 'KAMI', 'SIMO'],
       icon: '🤔'
    }
 };
