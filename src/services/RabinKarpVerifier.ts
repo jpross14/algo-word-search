@@ -140,7 +140,7 @@ export default class RabinKarpVerifier {
 
       // Check if word or ang iya reverse exists sa word list
       const normalMatch = wordList.some(w => w.toUpperCase() === word.toUpperCase());
-      const reverseMatch = wordList.some(w => w.toUpperCase() === word.toUpperCase());
+      const reverseMatch = wordList.some(w => w.toUpperCase() === reversedWord.toUpperCase());
 
       if (normalMatch) {
          return { isValid: true, word: word.toUpperCase() };

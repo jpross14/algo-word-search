@@ -12,6 +12,7 @@ export interface WordItem {
    direction?: string;
    startPos?: { row: number; col: number };
    path?: { row: number; col: number }[];
+   colorIndex: number;
 }
 
 export interface GameState {
@@ -21,6 +22,7 @@ export interface GameState {
    isSelecting: boolean;
    selectedCells: { row: number; col: number }[];
    startCell: { row: number; col: number } | null;
+   foundWordsCount: number;
 }
 
 export interface SearchResult {

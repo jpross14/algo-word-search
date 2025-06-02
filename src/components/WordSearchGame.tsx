@@ -12,6 +12,20 @@ export default function WordSearchGame () {
       'APP', 'SEARCH', 'WORD', 'GAME', 'FUN'
    ];
 
+   // Color palette for found words
+   const WORD_COLORS = [
+      { bg: 'bg-red-200', text: 'text-red-800', border: 'border-red-400', name: 'red' },
+      { bg: 'bg-blue-200', text: 'text-blue-800', border: 'border-blue-400', name: 'blue' },
+      { bg: 'bg-green-200', text: 'text-green-800', border: 'border-green-400', name: 'green' },
+      { bg: 'bg-yellow-200', text: 'text-yellow-800', border: 'border-yellow-400', name: 'yellow' },
+      { bg: 'bg-purple-200', text: 'text-purple-800', border: 'border-purple-400', name: 'purple' },
+      { bg: 'bg-pink-200', text: 'text-pink-800', border: 'border-pink-400', name: 'pink' },
+      { bg: 'bg-indigo-200', text: 'text-indigo-800', border: 'border-indigo-400', name: 'indigo' },
+      { bg: 'bg-teal-200', text: 'text-teal-800', border: 'border-teal-400', name: 'teal' },
+      { bg: 'bg-orange-200', text: 'text-orange-800', border: 'border-orange-400', name: 'orange' },
+      { bg: 'bg-cyan-200', text: 'text-cyan-800', border: 'border-cyan-400', name: 'cyan' }
+   ];
+
    const [gameState, setGameState] = useState<GameState>(() => {
       // Pang-generate puzzle gamit si PuzzleGenerator
       const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
@@ -22,11 +36,16 @@ export default function WordSearchGame () {
             row: rowIndex,
             col: colIndex,
             isFound: false,
-            isSelected: false
+            isSelected: false,
+            wordIndex: -1 // Track which word this cell belongs to
          }))
       );
 
-      const words = SAMPLE_WORDS.map(word => ({ word: word.toUpperCase(), found: false }));
+      const words = SAMPLE_WORDS.map(word => ({ 
+         word: word.toUpperCase(), 
+         found: false,
+         colorIndex: -1 // Track which color this word uses
+      }));
 
       return {
          grid,
@@ -34,11 +53,35 @@ export default function WordSearchGame () {
          score: 0,
          isSelecting: false,
          selectedCells: [],
-         startCell: null
+         startCell: null,
+         foundWordsCount: 0 // Track order of found words
       };
    });
 
    const gridRef = useRef<HTMLDivElement>(null);
+
+   // Helper function to get the color for a found word
+   const getWordColor = (wordIndex: number) => {
+      const word = gameState.words[wordIndex];
+      if (!word.found || word.colorIndex === -1) return null;
+      return WORD_COLORS[word.colorIndex % WORD_COLORS.length];
+   };
+
+   // Helper function to get cell styling
+   const getCellStyling = (cell: any, isSelected: boolean) => {
+      if (cell.isFound && cell.wordIndex !== -1) {
+         const color = getWordColor(cell.wordIndex);
+         if (color) {
+            return `${color.bg} ${color.text} ${color.border} shadow-sm`;
+         }
+      }
+      
+      if (isSelected) {
+         return 'bg-blue-200 text-blue-800 border-blue-400 shadow-sm';
+      }
+      
+      return 'bg-gray-50 hover:bg-gray-100 text-gray-700';
+   };
 
    // ===============================
    // FILE: hooks/useGameControls.ts
@@ -117,18 +160,27 @@ export default function WordSearchGame () {
          if (wordIndex !== -1) {
             // Word found! Update ang state
             setGameState(prev => {
-               const newGrid = prev.grid.map(row => row.map(cell => ({
-                  ...cell,
-                  isFound: prev.selectedCells.some(sc => sc.row === cell.row && sc.col === cell.col)
-                     ? true
-                     : cell.isFound
-               })));
+               const newFoundWordsCount = prev.foundWordsCount + 1;
+               const colorIndex = prev.foundWordsCount; // Use current count as color index
+
+               const newGrid = prev.grid.map(row => row.map(cell => {
+                  const isInPath = prev.selectedCells.some(sc => sc.row === cell.row && sc.col === cell.col);
+                  if (isInPath) {
+                     return {
+                        ...cell,
+                        isFound: true,
+                        wordIndex: wordIndex
+                     };
+                  }
+                  return cell;
+               }));
 
                const newWords = [...prev.words];
                newWords[wordIndex] = {
                   ...newWords[wordIndex],
                   found: true,
-                  path: prev.selectedCells
+                  path: prev.selectedCells,
+                  colorIndex: colorIndex
                };
 
                return {
@@ -138,7 +190,8 @@ export default function WordSearchGame () {
                   score: prev.score + verification.word!.length * 10,
                   isSelecting: false,
                   selectedCells: [],
-                  startCell: null
+                  startCell: null,
+                  foundWordsCount: newFoundWordsCount
                };
             });
             return;
@@ -164,18 +217,20 @@ export default function WordSearchGame () {
             row: rowIndex,
             col: colIndex,
             isFound: false,
-            isSelected: false
+            isSelected: false,
+            wordIndex: -1
          }))
       );
 
       setGameState(prev => ({
          ...prev,
          grid,
-         words: prev.words.map(w => ({ ...w, found: false, path: undefined})),
+         words: prev.words.map(w => ({ ...w, found: false, path: undefined, colorIndex: -1})),
          score: 0,
          isSelecting: false,
          selectedCells: [],
-         startCell: null
+         startCell: null,
+         foundWordsCount: 0
       }));
    };
 
@@ -250,12 +305,7 @@ export default function WordSearchGame () {
                               className={`
                                  w-8 h-8 flex items-center justify-center text-xs font-bold cursor-pointer
                                  border border-gray-300 transition-all duration-150 rounded
-                                 ${cell.isFound 
-                                 ? 'bg-green-200 text-green-800 border-green-400 shadow-sm' 
-                                 : isSelected
-                                 ? 'bg-blue-200 text-blue-800 border-blue-400 shadow-sm'
-                                 : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                                 }
+                                 ${getCellStyling(cell, isSelected)}
                               `}
                               onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
                               onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
@@ -276,25 +326,41 @@ export default function WordSearchGame () {
                <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Words to Find</h3>
                   <div className="grid grid-cols-2 xl:grid-cols-1 gap-2">
-                  {gameState.words.map((wordItem, index) => (
-                     <div
-                        key={index}
-                        className={`
-                        p-3 rounded-lg text-sm font-medium transition-all
-                        ${wordItem.found 
-                           ? 'bg-green-100 text-green-800 border border-green-200' 
-                           : 'bg-gray-100 text-gray-700 border border-gray-200'
-                        }
-                        `}
-                     >
-                        <div className="flex justify-between items-center">
-                        <span className={wordItem.found ? 'line-through' : ''}>
-                           {wordItem.word}
-                        </span>
-                        {wordItem.found && <span className="text-green-600">✓</span>}
+                  {gameState.words.map((wordItem, index) => {
+                     const wordColor = wordItem.found ? getWordColor(index) : null;
+                     
+                     return (
+                        <div
+                           key={index}
+                           className={`
+                           p-3 rounded-lg text-sm font-medium transition-all border
+                           ${wordItem.found && wordColor
+                              ? `${wordColor.bg} ${wordColor.text} ${wordColor.border}` 
+                              : 'bg-gray-100 text-gray-700 border-gray-200'
+                           }
+                           `}
+                        >
+                           <div className="flex justify-between items-center">
+                           <span className={wordItem.found ? 'line-through' : ''}>
+                              {wordItem.word}
+                           </span>
+                           {wordItem.found && <span className={wordColor ? wordColor.text : 'text-green-600'}>✓</span>}
+                           </div>
                         </div>
-                     </div>
-                  ))}
+                     );
+                  })}
+                  </div>
+               </div>
+
+               {/* Color Legend */}
+               <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-3">Color Legend</h4>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                     {WORD_COLORS.slice(0, Math.min(WORD_COLORS.length, gameState.words.length)).map((color, index) => (
+                        <div key={index} className={`${color.bg} ${color.text} ${color.border} border rounded px-2 py-1 text-center`}>
+                           {index + 1}. {color.name}
+                        </div>
+                     ))}
                   </div>
                </div>
 
@@ -307,6 +373,7 @@ export default function WordSearchGame () {
                      <li>• Click and drag to select words</li>
                      <li>• Words can go in any direction</li>
                      <li>• Words can be forwards or backwards</li>
+                     <li>• Each found word gets a unique color</li>
                      <li>• Uses Rabin-Karp for fast verification</li>
                      <li>• Find all words to win!</li>
                   </ul>
