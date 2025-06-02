@@ -1,19 +1,22 @@
 "use client";
 // Main Component
 import { GameState } from "@/types/types";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import PuzzleGenerator from "@/services/PuzzleGenerator";
 import RabinKarpVerifier from "@/services/RabinKarpVerifier";
+import { WORD_CATEGORIES } from "@/constants/wordCategories";
 
 export default function WordSearchGame() {
    // const SAMPLE_WORDS = [
    //    'REACT', 'SCRIPT', 'NEXT', 'CODE', 'WEB', 
    //    'APP', 'SEARCH', 'WORD', 'GAME', 'FUN'
    // ];
-   const SAMPLE_WORDS = [
-      'HEEJIN', 'HYUNJIN', 'HASEUL', 'YEOJIN', 'VIVI', 
-      'KIMLIP', 'JINSOUL', 'CHOERRY', 'YVES', 'CHUU', 'GOWON', 'HYEJU'
-   ];
+   // const SAMPLE_WORDS = [
+   //    'HEEJIN', 'HYUNJIN', 'HASEUL', 'YEOJIN', 'VIVI', 
+   //    'KIMLIP', 'JINSOUL', 'CHOERRY', 'YVES', 'CHUU', 'GOWON', 'HYEJU'
+   // ];
+
+   const [currentCategory, setCurrentCategory] = useState<keyof typeof WORD_CATEGORIES>('LOONA');
 
    // Enhanced color palette with better opacity support
    const WORD_COLORS = [
@@ -32,7 +35,8 @@ export default function WordSearchGame() {
    ]; 
 
    const [gameState, setGameState] = useState<GameState>(() => {
-      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
+      const initialWords = WORD_CATEGORIES[currentCategory].words;
+      const gridData = PuzzleGenerator.generatePuzzle(initialWords, 12).grid;
 
       const grid = gridData.map((row, rowIndex) => 
          row.map((letter, colIndex) => ({
@@ -45,7 +49,7 @@ export default function WordSearchGame() {
          }))
       );
 
-      const words = SAMPLE_WORDS.map((word, index) => ({ 
+      const words = initialWords.map((word, index) => ({ 
          word: word.toUpperCase(), 
          found: false,
          colorIndex: index
@@ -255,7 +259,8 @@ export default function WordSearchGame() {
    }, [gameState.isSelecting, gameState.selectedCells, gameState.grid, gameState.words]);
 
    const resetGame = () => {
-      const gridData = PuzzleGenerator.generatePuzzle(SAMPLE_WORDS, 12).grid;
+      const currentWords = WORD_CATEGORIES[currentCategory].words;
+      const gridData = PuzzleGenerator.generatePuzzle(currentWords, 12).grid;
 
       const grid = gridData.map((row, rowIndex) =>
          row.map((letter, colIndex) => ({
@@ -280,11 +285,45 @@ export default function WordSearchGame() {
       }));
    };
 
+   const handleCategoryChange = (newCategory: keyof typeof WORD_CATEGORIES) => {
+      setCurrentCategory(newCategory);
+      
+      const newWords = WORD_CATEGORIES[newCategory].words;
+      const gridData = PuzzleGenerator.generatePuzzle(newWords, 12).grid;
+
+      const grid = gridData.map((row, rowIndex) =>
+         row.map((letter, colIndex) => ({
+            letter,
+            row: rowIndex,
+            col: colIndex,
+            isFound: false,
+            isSelected: false,
+            wordIndices: []
+         }))
+      );
+
+      setGameState({
+         grid,
+         words: newWords.map((word, index) => ({ 
+            word: word.toUpperCase(), 
+            found: false,
+            colorIndex: index
+         })),
+         score: 0,
+         isSelecting: false,
+         selectedCells: [],
+         startCell: null,
+         foundWordsCount: 0
+      });
+   };
+
    const foundWordsCount = gameState.words.filter(w => w.found).length;
    const isGameComplete = foundWordsCount === gameState.words.length;
+   const [mounted, setMounted] = useState(false);
+   useEffect(() => setMounted(true), []);
 
    return (
-      <div className="max-w-6xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+      <div className="max-w-screen mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
          {/* ===============================
           FILE: components/Header.tsx
           =============================== */}
@@ -296,7 +335,7 @@ export default function WordSearchGame() {
          {/* ===============================
           FILE: components/ScoreBoard.tsx
           =============================== */}
-         <div className="flex justify-between items-center mb-6 bg-white rounded-lg p-4 shadow-md">
+         <div className="flex justify-between items-center mb-6 bg-white rounded-lg p-4 shadow-md px-10">
             <div className="text-center">
                <div className="text-2xl font-bold text-blue-600">{gameState.score}</div>
                <div className="text-sm text-gray-500">Score</div>
@@ -305,6 +344,22 @@ export default function WordSearchGame() {
             <div className="text-center">
                <div className="text-2xl font-bold text-green-600">{foundWordsCount}/{gameState.words.length}</div>
                <div className="text-sm text-gray-500">Words Found</div>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="flex flex-col items-center">
+               <select
+                  value={currentCategory}
+                  onChange={(e) => handleCategoryChange(e.target.value as keyof typeof WORD_CATEGORIES)}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium border-0 outline-none cursor-pointer hover:from-indigo-600 hover:to-purple-700 transition-all shadow-md"
+               >
+                  {Object.entries(WORD_CATEGORIES).map(([key, category]) => (
+                     <option key={key} value={key} className="bg-white text-gray-800">
+                        {category.icon} {category.name}
+                     </option>
+                  ))}
+               </select>
+               <div className="text-sm text-gray-500 mt-1">Category</div>
             </div>
 
             <div className="text-center">
@@ -326,11 +381,14 @@ export default function WordSearchGame() {
             </div>
          )}
          
-         <div className="flex flex-col xl:flex-row gap-6">
+         { !mounted ? (
+            <div className="justify-self-center text-4xl font-semibold mt-10 text-gray-500">🎮 Loading Game...</div>
+         ) : (
+            <div className="flex flex-col xl:flex-row gap-6">
             <div className="flex-1">
                <div
                   ref={gridRef}
-                  className="inline-block bg-white p-4 rounded-lg shadow-lg select-none"
+                  className="inline-block bg-white p-4 rounded-lg shadow-lg select-none mx-[5%] lg:mx-[20%]"
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                >
@@ -441,6 +499,7 @@ export default function WordSearchGame() {
                </div>
             </div>
          </div>
+         )}
       </div>
    );
 }
