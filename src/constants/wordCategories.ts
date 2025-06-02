@@ -1,6 +1,6 @@
 export const WORD_CATEGORIES = {
    'LOONA': {
-      name: 'LOONA Members',
+      name: 'LOONA',
       words: ['HEEJIN', 'HYUNJIN', 'HASEUL', 'YEOJIN', 'VIVI', 'KIMLIP', 'JINSOUL', 'CHOERRY', 'YVES', 'CHUU', 'GOWON', 'HYEJU'],
       icon: '🌙'
    },
@@ -16,8 +16,8 @@ export const WORD_CATEGORIES = {
    },
    'SINGERS': {
       name: 'Singers',
-      words: ['TAYLOR', 'RIHANNA', 'JANET', 'MARIAH', 'ARIANA', 'CELINE', 'WHITNEY', 'BEYONCE', 'SABRINA', 'OLIVIA'],
-      icon: '🎨'
+      words: ['TAYLOR', 'RIHANNA', 'JANET', 'GAGA', 'MARIAH', 'ARIANA', 'CELINE', 'WHITNEY', 'BEYONCE', 'SABRINA', 'OLIVIA'],
+      icon: '🎤'
    },
    'TECH': {
       name: 'Technology',
@@ -25,7 +25,7 @@ export const WORD_CATEGORIES = {
       icon: '💻'
    },
    'SPACE': {
-      name: 'Space & Universe',
+      name: 'Space',
       words: ['PLANET', 'STAR', 'GALAXY', 'MOON', 'SUN', 'COMET', 'ASTEROID', 'NEBULA', 'ORBIT', 'COSMOS', 'METEOR', 'ROCKET'],
       icon: '🚀'
    },

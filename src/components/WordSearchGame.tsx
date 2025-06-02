@@ -420,87 +420,81 @@ export default function WordSearchGame() {
 
   return (
     <div className="max-w-screen mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
-      {/* ===============================
-          FILE: components/Header.tsx
-          =============================== */}
+      {/* components/Header.tsx */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
+        <h1 className="text-4xl font-bold text-[#0d767a] tracking-tighter mb-2">
           Wise Ways Word Search
         </h1>
         <p className="text-gray-600">Find all hidden words in the puzzle!</p>
       </div>
 
-      {/* ===============================
-          FILE: components/ScoreBoard.tsx
-          =============================== */}
-      <div className="flex justify-between items-center mb-6 bg-white rounded-lg p-4 shadow-md px-10">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {isGameComplete && finalScore > 0 ? finalScore : gameState.score}
-          </div>
-          <div className="text-sm text-gray-500">Score</div>
-          {isGameComplete && finalScore > gameState.score && (
-            <div className="text-xs text-green-600 font-medium">
-              +{finalScore - gameState.score} time bonus!
+      {/* components/ScoreBoard.tsx */}
+      <div className="flex flex-wrap justify-center gap-4 xl:gap-6 items-center mb-6 bg-white rounded-lg mx-[5%] p-4 shadow-md xl:px-[8%]">
+         {/* Each child box */}
+         <div className="text-center flex-1 min-w-[120px]">
+            <div className="text-2xl font-bold text-blue-600">
+               {isGameComplete && finalScore > 0 ? finalScore : gameState.score}
             </div>
-          )}
-        </div>
+            <div className="text-sm text-gray-500">Score</div>
+            {isGameComplete && finalScore > gameState.score && (
+               <div className="text-xs text-green-600 font-medium">
+               +{finalScore - gameState.score} time bonus!
+               </div>
+            )}
+         </div>
 
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">
-            {foundWordsCount}/{gameState.words.length}
-          </div>
-          <div className="text-sm text-gray-500">Words Found</div>
-        </div>
+         <div className="text-center flex-1 min-w-[120px]">
+            <div className="text-2xl font-bold text-green-600">
+               {foundWordsCount}/{gameState.words.length}
+            </div>
+            <div className="text-sm text-gray-500">Words Found</div>
+         </div>
 
-        {/* Timer Section */}
-        <div className="text-center">
-          <div className="text-2xl font-bold text-orange-600">
-            {formatTime(elapsedTime)}
-          </div>
-          <div className="text-sm text-gray-500">Time</div>
-          {!isTimerRunning && elapsedTime > 0 && (
-            <div className="text-xs text-gray-400">Stopped</div>
-          )}
-        </div>
+         <div className="text-center flex-1 min-w-[120px]">
+            <div className="text-2xl font-bold text-orange-600">
+               {formatTime(elapsedTime)}
+            </div>
+            <div className="text-sm text-gray-500">Time</div>
+            {!isTimerRunning && elapsedTime > 0 && (
+               <div className="text-xs text-gray-400">Stopped</div>
+            )}
+         </div>
 
-        {/* Category Dropdown */}
-        <div className="flex flex-col items-center">
-          <select
-            value={currentCategory}
-            onChange={(e) =>
-              handleCategoryChange(
-                e.target.value as keyof typeof WORD_CATEGORIES
-              )
-            }
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium border-0 outline-none cursor-pointer hover:from-indigo-600 hover:to-purple-700 transition-all shadow-md"
-          >
-            {Object.entries(WORD_CATEGORIES).map(([key, category]) => (
-              <option key={key} value={key} className="bg-white text-gray-800">
-                {category.icon} {category.name}
-              </option>
-            ))}
-          </select>
-          <div className="text-sm text-gray-500 mt-1">Category</div>
-        </div>
+         <div className="flex flex-col items-center flex-1 min-w-[150px]">
+            <select
+               value={currentCategory}
+               onChange={(e) =>
+               handleCategoryChange(e.target.value as keyof typeof WORD_CATEGORIES)
+               }
+               className="bg-gradient-to-r from-indigo-500 to-[#0d767a] text-white px-4 py-2 rounded-lg font-medium border-0 outline-none cursor-pointer hover:from-indigo-600 hover:to-[#096c71] hover:scale-103 transition-all shadow-md w-full"
+            >
+               {Object.entries(WORD_CATEGORIES).map(([key, category]) => (
+               <option key={key} value={key} className="bg-white text-gray-800">
+                  {category.icon} {category.name}
+               </option>
+               ))}
+            </select>
+            <div className="text-sm text-gray-500 mt-1">Category</div>
+         </div>
 
-        <div className="text-center">
-          <div className="text-lg font-semibold text-purple-600">
-            Rabin-Karp
-          </div>
-          <div className="text-sm text-gray-500">Algorithm</div>
-        </div>
+         <div className="text-center flex-1 min-w-[120px]">
+            <div className="text-lg font-semibold text-purple-600">Rabin-Karp</div>
+            <div className="text-sm text-gray-500">Algorithm</div>
+         </div>
 
-        <button
-          onClick={resetGame}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-        >
-          New Puzzle
-        </button>
-      </div>
+         <div className="flex-1 min-w-[140px] text-center">
+            <button
+               onClick={resetGame}
+               className="bg-[#0d767a] hover:bg-[#096c71] text-white px-6 py-2 rounded-lg font-medium hover:scale-103 transition-all w-40 max-w-full"
+            >
+               New Puzzle
+            </button>
+         </div>
+         </div>
+
 
       {isGameComplete && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 text-center">
+        <div className="bg-green-100 border border-green-400 text-[#096c71] px-4 py-3 rounded-lg mb-6 text-center">
           🎉 Amazing! You found all words in {formatTime(elapsedTime)}!
           {finalScore > gameState.score && (
             <span> Time bonus: +{finalScore - gameState.score} points!</span>
@@ -514,149 +508,133 @@ export default function WordSearchGame() {
           🎮 Loading Game...
         </div>
       ) : (
-        <div className="flex flex-col xl:flex-row gap-6">
-          <div className="flex-1">
+        <div className="flex flex-col items-center gap-6 xl:gap-8">
+         {/* Top two columns: Grid + Word List */}
+         <div className="w-full max-w-7xl grid xl:grid-cols-[auto_auto] gap-6 justify-center items-start">
+            {/* Grid Section */}
             <div
-              ref={gridRef}
-              className="inline-block bg-white p-4 rounded-lg shadow-lg select-none mx-[5%] lg:mx-[20%]"
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+               ref={gridRef}
+               className="inline-block bg-white p-4 rounded-lg shadow-lg select-none"
+               onMouseUp={handleMouseUp}
+               onMouseLeave={handleMouseUp}
             >
-              <div className="grid grid-cols-12 gap-1">
-                {gameState.grid.map((row, rowIndex) =>
+               <div className="grid grid-cols-12 gap-1">
+               {gameState.grid.map((row, rowIndex) =>
                   row.map((cell, colIndex) => {
-                    const isSelected = gameState.selectedCells.some(
-                      (sc) => sc.row === rowIndex && sc.col === colIndex
-                    );
+                     const isSelected = gameState.selectedCells.some(
+                     (sc) => sc.row === rowIndex && sc.col === colIndex
+                     );
 
-                    const styling = getCellStyling(cell, isSelected);
+                     const styling = getCellStyling(cell, isSelected);
 
-                    return (
-                      <div
+                     return (
+                     <div
                         key={`${rowIndex}-${colIndex}`}
                         className={`
-                                    w-8 h-8 flex items-center justify-center text-xs font-bold cursor-pointer
-                                    transition-all duration-150 rounded
-                                    ${styling.className}
-                                 `}
+                           w-8 h-8 flex items-center justify-center text-xs font-bold cursor-pointer
+                           transition-all duration-150 rounded
+                           ${styling.className}
+                        `}
                         style={styling.style}
-                        onMouseDown={() =>
-                          handleCellMouseDown(rowIndex, colIndex)
-                        }
-                        onMouseEnter={() =>
-                          handleCellMouseEnter(rowIndex, colIndex)
-                        }
-                      >
+                        onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
+                        onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
+                     >
                         {cell.letter}
-                      </div>
-                    );
+                     </div>
+                     );
                   })
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ===============================
-            FILE: components/WordList.tsx
-            =============================== */}
-          <div className="xl:w-80">
-            <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Words to Find
-              </h3>
-              <div className="grid grid-cols-2 xl:grid-cols-1 gap-2">
-                {gameState.words.map((wordItem, index) => {
-                  const wordColor = WORD_COLORS[index % WORD_COLORS.length]; // Use word's index directly
-
-                  return (
-                    <div
-                      key={index}
-                      className={`
-                                 p-3 rounded-lg text-sm font-medium transition-all border
-                                 ${
-                                   wordItem.found && wordColor
-                                     ? `${wordColor.bg} ${wordColor.text} ${wordColor.border}`
-                                     : "bg-gray-100 text-gray-700 border-gray-200"
-                                 }
-                              `}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={wordItem.found ? "line-through" : ""}>
-                          {wordItem.word}
-                        </span>
-                        {wordItem.found && (
-                          <span
-                            className={
-                              wordColor ? wordColor.text : "text-green-600"
-                            }
-                          >
-                            ✓
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+               )}
+               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-              <h4 className="text-sm font-semibold text-gray-800 mb-3">
-                Color Features
-              </h4>
-              <div className="space-y-2 text-xs text-gray-600">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-red-300/60 to-blue-300/60 rounded border"></div>
-                  <span>Overlapping words create gradients</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-300/60 rounded border"></div>
-                  <span>Single words use semi-transparent colors</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-yellow-300/60 via-purple-300/60 to-pink-300/60 rounded border"></div>
-                  <span>Multiple overlaps create complex blends</span>
-                </div>
-              </div>
+            {/* Word List */}
+            <div className="w-full max-w-sm xl:w-[22rem] self-start">
+               <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+               <h3 className="text-lg font-semibold text-gray-800 mb-4">Words to Find</h3>
+               <div className="grid grid-cols-2 gap-2">
+                  {gameState.words.map((wordItem, index) => {
+                     const wordColor = WORD_COLORS[index % WORD_COLORS.length];
+
+                     return (
+                     <div
+                        key={index}
+                        className={`
+                           p-3 rounded-lg text-sm font-medium transition-all border
+                           ${
+                           wordItem.found && wordColor
+                              ? `${wordColor.bg} ${wordColor.text} ${wordColor.border}`
+                              : "bg-gray-100 text-gray-700 border-gray-200"
+                           }
+                        `}
+                     >
+                        <div className="flex justify-between items-center">
+                           <span className={wordItem.found ? "line-through" : ""}>
+                           {wordItem.word}
+                           </span>
+                           {wordItem.found && (
+                           <span className={wordColor ? wordColor.text : "text-green-600"}>✓</span>
+                           )}
+                        </div>
+                     </div>
+                     );
+                  })}
+               </div>
+               </div>
+            </div>
+         </div>
+
+         {/* Info Cards */}
+         {/* About Grid Cells Colors */}
+         <div className="w-full max-w-7xl flex flex-wrap gap-4 justify-center">
+            <div className="bg-white rounded-lg shadow-lg p-4 text-sm text-gray-700 flex-1 min-w-[220px] max-w-sm">
+               <h4 className="font-semibold text-gray-800 mb-3">Color Features</h4>
+               <div className="space-y-2 text-sm text-gray-600">
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 p-2 bg-green-300/60 rounded border"></div>
+                  <span>Letters of a word will share a single color distinct from other words</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 p-2 bg-gradient-to-r from-red-300/60 to-blue-300/60 rounded border"></div>
+                  <span>Words may overlap and will create gradients! Will you get to see one?</span>
+               </div>
+               </div>
             </div>
 
-            {/* Timer Bonus Info */}
-            <div className="bg-orange-50 rounded-lg p-4 mb-4 text-sm text-orange-800">
-              <h4 className="font-semibold mb-2">⏱️ Time Bonus:</h4>
-              <ul className="space-y-1">
-                <li>• Faster completion = higher bonus</li>
-                <li>• Formula: Score + (Score ÷ minutes)</li>
-                <li>• Timer starts on first click</li>
-                <li>• Stops when puzzle is complete</li>
-              </ul>
+            {/* About Time Bonus */}
+            <div className="bg-orange-50 rounded-lg shadow-lg p-4 text-sm text-orange-800 flex-1 min-w-[220px] max-w-sm">
+               <h4 className="font-semibold mb-2">⏱️ Time Bonus:</h4>
+               <ul className="space-y-1">
+               <li>• Faster completion = higher bonus</li>
+               <li>• Formula: Score + (Score ÷ minutes)</li>
+               <li>• Timer starts on first click</li>
+               <li>• Stops when puzzle is complete</li>
+               </ul>
             </div>
 
-            {/* ===============================
-               FILE: components/Instructions.tsx
-               =============================== */}
-            <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
-              <h4 className="font-semibold mb-2">🎮 How to Play:</h4>
-              <ul className="space-y-1">
-                <li>• Click and drag to select words</li>
-                <li>• Words can go in any direction</li>
-                <li>• Overlapping words create beautiful gradients</li>
-                <li>• Each word gets a unique base color</li>
-                <li>• Find all words to win!</li>
-              </ul>
+            {/* Instructions */}
+            <div className="bg-blue-50 rounded-lg shadow-lg p-4 text-sm text-blue-800 flex-1 min-w-[220px] max-w-sm">
+               <h4 className="font-semibold mb-2">🎮 How to Play:</h4>
+               <ul className="space-y-1">
+               <li>• Click and drag to select words</li>
+               <li>• Words can go in any direction</li>
+               <li>• Overlapping words create beautiful gradients</li>
+               <li>• Each word gets a unique base color</li>
+               <li>• Find all words to win!</li>
+               </ul>
             </div>
 
-            {/* Algorithm Info */}
-            <div className="mt-4 bg-purple-50 rounded-lg p-4 text-sm text-purple-800">
-              <h4 className="font-semibold mb-2">🔬 Algorithm Features:</h4>
-              <ul className="space-y-1">
-                <li>• Rolling hash for efficiency</li>
-                <li>• O(nm) average complexity</li>
-                <li>• 8-directional search</li>
-                <li>• Collision handling</li>
-              </ul>
+            {/* About the Algorithm */}
+            <div className="bg-purple-100 rounded-lg shadow-lg p-4 text-sm text-purple-800 flex-1 min-w-[220px] max-w-sm">
+               <h4 className="font-semibold mb-2">🔬 Algorithm Features:</h4>
+               <ul className="space-y-1">
+               <li>• Rolling hash for efficiency</li>
+               <li>• O(nm) average complexity</li>
+               <li>• 8-directional search</li>
+               <li>• Collision handling</li>
+               </ul>
             </div>
-          </div>
-        </div>
+         </div>
+         </div>
       )}
     </div>
   );
