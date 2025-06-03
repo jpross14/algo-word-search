@@ -1,4 +1,5 @@
 "use client";
+// MAIN COMPONENT OF THE GAME
 import { useState, useEffect } from "react";
 import { WORD_CATEGORIES } from "@/constants/wordCategories";
 import { useTimer } from "@/hooks/useTimer";

@@ -2,9 +2,9 @@ import { SearchResult } from "@/types/types";
 
 export default class RabinKarpVerifier {
    private static readonly BASE = 256;
-   private static readonly PRIME = 101;
+   private static readonly PRIME = 1000000007; // Larger prime number for better distribution
 
-   // Tanan na possible na 8 nga directions: horizantal or vertical or diagonal
+   // Tanan na possible na 8 nga directions: horizontal or vertical or diagonal
    private static readonly DIRECTIONS = [
       { name: 'right', dr: 0, dc: 1 },      // →
       { name: 'down', dr: 1, dc: 0 },       // ↓
@@ -15,6 +15,9 @@ export default class RabinKarpVerifier {
       { name: 'up-left', dr: -1, dc: -1 },  // ↖
       { name: 'up-right', dr: -1, dc: 1 }   // ↗
    ];
+
+   // Cache for powers to avoid recalculation
+   private static powerCache = new Map<number, number>();
 
    // pang-calculate sng rolling hash for a string
    private static calculateHash(str: string): number {
@@ -27,10 +30,16 @@ export default class RabinKarpVerifier {
 
    // pang-calculate ang power of base for rolling hash
    private static calculatePower(length: number): number {
+      if (this.powerCache.has(length)) {
+         return this.powerCache.get(length)!;
+      }
+
       let power = 1;
       for (let i = 0; i < length - 1; i++) {
          power = (power * this.BASE) % this.PRIME;
       }
+      
+      this.powerCache.set(length, power);
       return power;
    }
 
@@ -41,201 +50,110 @@ export default class RabinKarpVerifier {
       newChar: string, 
       power: number
    ): number {
-      let newHash = oldHash - (oldChar.charCodeAt(0) * power) % this.PRIME;
-      newHash  = (newHash * this.BASE + newChar.charCodeAt(0)) % this.PRIME;
-      return newHash < 0 ? newHash + this.PRIME : newHash;
+      // Remove ang leftmost character
+      let newHash = (oldHash - (oldChar.charCodeAt(0) * power) % this.PRIME + this.PRIME) % this.PRIME;
+      // Add new rightmost character
+      newHash = (newHash * this.BASE + newChar.charCodeAt(0)) % this.PRIME;
+      return newHash;
    }
 
-   // Extract ang string halin grid in a specific direction
-   private static extractString(
+   // Check kng ang position is within grid bounds
+   private static isValidPosition(grid: string[][], row: number, col: number): boolean {
+      return row >= 0 && row < grid.length && col >= 0 && col < grid[0].length;
+   }
+
+   // Get ang character at position or return null kng out of bounds
+   private static getChar(grid: string[][], row: number, col: number): string | null {
+      return this.isValidPosition(grid, row, col) ? grid[row][col] : null;
+   }
+
+   // Build initial window string for any direction
+   private static buildInitialWindow(
       grid: string[][],
       startRow: number,
       startCol: number,
       length: number,
       dr: number,
       dc: number
-   ): { str: string; path: { row: number; col: number }[] } | null {
-      const str: string[] = [];
-      const path: { row: number; col: number }[] = [];
+   ): { window: string; positions: Array<{row: number, col: number}> } | null {
+      const chars: string[] = [];
+      const positions: Array<{row: number, col: number}> = [];
 
       for (let i = 0; i < length; i++) {
          const row = startRow + i * dr;
          const col = startCol + i * dc;
-
-         if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length) {
-            return null;
-         }
-
-         str.push(grid[row][col]);
-         path.push({ row, col });
+         const char = this.getChar(grid, row, col);
+         
+         if (char === null) return null;
+         
+         chars.push(char);
+         positions.push({ row, col });
       }
 
-      return { str: str.join(""), path };
+      return { window: chars.join(''), positions };
    }
 
    // Gamit pang search sng word sa specific nga direction using Rabin-Karp
    private static searchInDirection(
-   grid: string[][],
-   word: string,
-   direction: { name: string; dr: number; dc: number }
+      grid: string[][],
+      word: string,
+      direction: { name: string; dr: number; dc: number }
    ): SearchResult[] {
       const results: SearchResult[] = [];
       const wordHash = this.calculateHash(word);
       const wordLength = word.length;
-
-      const isRight = direction.dr === 0 && direction.dc === 1;
-      const isDown = direction.dr === 1 && direction.dc === 0;
-      const isLeft = direction.dr === 0 && direction.dc === -1;
-      const isUp = direction.dr === -1 && direction.dc === 0;
-
       const power = this.calculatePower(wordLength);
+      const { dr, dc } = direction;
 
-      if (isRight) {
-         for (let row = 0; row < grid.length; row++) {
-            let window = grid[row].slice(0, wordLength).join("");
-            let hash = this.calculateHash(window);
+      // Determine the range of starting positions based on direction
+      const startPositions = this.getStartPositions(grid, wordLength, dr, dc);
 
-            for (let col = 0; col <= grid[0].length - wordLength; col++) {
-               if (hash === wordHash && window === word) {
-                  const path = Array.from({ length: wordLength }, (_, i) => ({
-                     row,
-                     col: col + i,
-                  }));
-                  results.push({
-                     found: true,
-                     path,
-                     direction: direction.name,
-                     startPos: { row, col },
-                  });
-               }
+      for (const { startRow, startCol, maxSteps } of startPositions) {
+         const initialBuild = this.buildInitialWindow(grid, startRow, startCol, wordLength, dr, dc);
+         if (!initialBuild) continue;
 
-               if (col < grid[0].length - wordLength) {
-                  const oldChar = grid[row][col];
-                  const newChar = grid[row][col + wordLength];
-                  hash = this.updateHash(hash, oldChar, newChar, power);
-                  window = window.slice(1) + newChar;
-               }
-            }
+         let { window, positions } = initialBuild;
+         let hash = this.calculateHash(window);
+
+         // check first iya initial position
+         if (hash === wordHash && window === word) {
+            results.push({
+               found: true,
+               path: [...positions],
+               direction: direction.name,
+               startPos: { row: startRow, col: startCol }
+            });
          }
-         return results;
-      }
 
-      if (isDown) {
-         for (let col = 0; col < grid[0].length; col++) {
-            let window = "";
-            for (let i = 0; i < wordLength; i++) {
-               window += grid[i][col];
-            }
-            let hash = this.calculateHash(window);
+         // slide ang window
+         for (let step = 1; step < maxSteps; step++) {
+            const newStartRow = startRow + step * dr;
+            const newStartCol = startCol + step * dc;
+            
+            // ang position sng new character na i-add
+            const newCharRow = newStartRow + (wordLength - 1) * dr;
+            const newCharCol = newStartCol + (wordLength - 1) * dc;
+            
+            const oldChar = this.getChar(grid, positions[0].row, positions[0].col);
+            const newChar = this.getChar(grid, newCharRow, newCharCol);
+            
+            if (oldChar === null || newChar === null) break;
 
-            for (let row = 0; row <= grid.length - wordLength; row++) {
-               if (hash === wordHash && window === word) {
-                  const path = Array.from({ length: wordLength }, (_, i) => ({
-                     row: row + i,
-                     col,
-                  }));
-                  results.push({
-                     found: true,
-                     path,
-                     direction: direction.name,
-                     startPos: { row, col },
-                  });
-               }
+            // update hash & window
+            hash = this.updateHash(hash, oldChar, newChar, power);
+            window = window.slice(1) + newChar;
+            
+            // update positions
+            positions.shift();
+            positions.push({ row: newCharRow, col: newCharCol });
 
-               if (row < grid.length - wordLength) {
-                  const oldChar = grid[row][col];
-                  const newChar = grid[row + wordLength][col];
-                  hash = this.updateHash(hash, oldChar, newChar, power);
-                  window = window.slice(1) + newChar;
-               }
-            }
-         }
-         return results;
-      }
-
-      if (isLeft) {
-         for (let row = 0; row < grid.length; row++) {
-            let window = grid[row]
-               .slice(-wordLength)
-               .reverse()
-               .join("");
-            let hash = this.calculateHash(window);
-
-            for (let col = grid[0].length - 1; col >= wordLength - 1; col--) {
-               const startCol = col;
-               if (hash === wordHash && window === word) {
-                  const path = Array.from({ length: wordLength }, (_, i) => ({
-                     row,
-                     col: startCol - i,
-                  }));
-                  results.push({
-                     found: true,
-                     path,
-                     direction: direction.name,
-                     startPos: { row, col: startCol },
-                  });
-               }
-
-               if (col >= wordLength) {
-                  const oldChar = grid[row][col];
-                  const newChar = grid[row][col - wordLength];
-                  hash = this.updateHash(hash, oldChar, newChar, power);
-                  window = newChar + window.slice(0, -1);
-               }
-            }
-         }
-         return results;
-      }
-
-      if (isUp) {
-         for (let col = 0; col < grid[0].length; col++) {
-            let window = "";
-            for (let i = grid.length - 1; i >= grid.length - wordLength; i--) {
-               window += grid[i][col];
-            }
-            let hash = this.calculateHash(window);
-
-            for (let row = grid.length - 1; row >= wordLength - 1; row--) {
-               const startRow = row;
-               if (hash === wordHash && window === word) {
-                  const path = Array.from({ length: wordLength }, (_, i) => ({
-                     row: startRow - i,
-                     col,
-                  }));
-                  results.push({
-                     found: true,
-                     path,
-                     direction: direction.name,
-                     startPos: { row: startRow, col },
-                  });
-               }
-
-               if (row >= wordLength) {
-                  const oldChar = grid[row][col];
-                  const newChar = grid[row - wordLength][col];
-                  hash = this.updateHash(hash, oldChar, newChar, power);
-                  window = newChar + window.slice(0, -1);
-               }
-            }
-         }
-         return results;
-      }
-
-      // fallback for diagonal and complex directions
-      for (let startRow = 0; startRow < grid.length; startRow++) {
-         for (let startCol = 0; startCol < grid[0].length; startCol++) {
-            const extraction = this.extractString(grid, startRow, startCol, wordLength, direction.dr, direction.dc);
-            if (!extraction) continue;
-
-            const { str, path } = extraction;
-            const strHash = this.calculateHash(str);
-
-            if (strHash === wordHash && str === word) {
+            // check for match
+            if (hash === wordHash && window === word) {
                results.push({
                   found: true,
-                  path,
+                  path: [...positions],
                   direction: direction.name,
-                  startPos: { row: startRow, col: startCol },
+                  startPos: { row: newStartRow, col: newStartCol }
                });
             }
          }
@@ -244,16 +162,67 @@ export default class RabinKarpVerifier {
       return results;
    }
 
-   // Ito yung main search function (it finds all occurences sng word)
+   // Get ang valid starting positions kag ang max steps for a direction
+   private static getStartPositions(
+      grid: string[][],
+      wordLength: number,
+      dr: number,
+      dc: number
+   ): Array<{ startRow: number; startCol: number; maxSteps: number }> {
+      const positions: Array<{ startRow: number; startCol: number; maxSteps: number }> = [];
+      const rows = grid.length;
+      const cols = grid[0].length;
+
+      // For horizontal directions (dr = 0)
+      if (dr === 0) {
+         const maxSteps = cols - wordLength + 1;
+         if (maxSteps > 0) {
+            for (let row = 0; row < rows; row++) {
+               positions.push({ startRow: row, startCol: dc > 0 ? 0 : cols - 1, maxSteps });
+            }
+         }
+      }
+      // For vertical directions (dc = 0)
+      else if (dc === 0) {
+         const maxSteps = rows - wordLength + 1;
+         if (maxSteps > 0) {
+            for (let col = 0; col < cols; col++) {
+               positions.push({ startRow: dr > 0 ? 0 : rows - 1, startCol: col, maxSteps });
+            }
+         }
+      }
+      // For diagonal directions
+      else {
+         // Calculate valid starting positions for diagonals
+         for (let startRow = 0; startRow < rows; startRow++) {
+            for (let startCol = 0; startCol < cols; startCol++) {
+               // Check if we can fit the word starting from this position
+               const endRow = startRow + (wordLength - 1) * dr;
+               const endCol = startCol + (wordLength - 1) * dc;
+               
+               if (this.isValidPosition(grid, endRow, endCol)) {
+                  positions.push({ startRow, startCol, maxSteps: 1 });
+               }
+            }
+         }
+      }
+
+      return positions;
+   }
+
+   // Ini ang main search function (it finds all occurences sng word)
    static searchWord(grid: string[][], word: string): SearchResult[] {
+      if (!grid || !grid.length || !word) return [];
+      
       const results: SearchResult[] = [];
       const upperWord = word.toUpperCase();
 
-      // Search alllll 8 directions
+      // Search in all 8 directions using optimized rolling hash
       for (const direction of this.DIRECTIONS) {
          const directionResults = this.searchInDirection(grid, upperWord, direction);
          results.push(...directionResults);
       }
+
       return results;
    }
 
@@ -262,23 +231,38 @@ export default class RabinKarpVerifier {
       grid: string[][],
       path: { row: number; col: number }[],
       wordList: string[]
-   ) : { isValid: boolean; word?: string; reveresedWord?: string } {
-      if (path.length === 0) return { isValid: false };
+   ): { isValid: boolean; word?: string; reversedWord?: string } {
+      if (!path || path.length === 0) return { isValid: false };
 
-      // extract the word from the pathh
-      const word = path.map(({ row, col}) => grid[row][col]).join('');
+      // Validate ang path positions
+      for (const pos of path) {
+         if (!this.isValidPosition(grid, pos.row, pos.col)) {
+            return { isValid: false };
+         }
+      }
+
+      // Extract ang words
+      const word = path.map(({ row, col }) => grid[row][col]).join('').toUpperCase();
       const reversedWord = word.split('').reverse().join('');
 
-      // Check if word or ang iya reverse exists sa word list
-      const normalMatch = wordList.some(w => w.toUpperCase() === word.toUpperCase());
-      const reverseMatch = wordList.some(w => w.toUpperCase() === reversedWord.toUpperCase());
+      // Himo to ang wordlist nga uppercase for comparison
+      const upperWordList = wordList.map(w => w.toUpperCase());
+
+      // Check dayon ang matches
+      const normalMatch = upperWordList.includes(word);
+      const reverseMatch = upperWordList.includes(reversedWord);
 
       if (normalMatch) {
-         return { isValid: true, word: word.toUpperCase() };
+         return { isValid: true, word };
       } else if (reverseMatch) {
-         return { isValid: true, word: reversedWord.toUpperCase() };
+         return { isValid: true, word: reversedWord, reversedWord: word };
       }
 
       return { isValid: false };
+   }
+
+   // Clear cache kng kinanglan naton (useful for memory management)
+   static clearCache(): void {
+      this.powerCache.clear();
    }
 }

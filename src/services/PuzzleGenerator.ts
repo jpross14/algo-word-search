@@ -43,7 +43,7 @@ export default class PuzzleGenerator {
       return true;
    }
 
-   // place isa ka word sa sulod sng grid at random position kag direction (with proper overlap handling)
+   // place isa ka word sa sulod sng grid at a random position kag direction (with proper overlap handling)
    static placeWord(grid: string[][], word: string): boolean {
       const directions = RabinKarpVerifier["DIRECTIONS"];
       const attempts = 200; // Increased attempts para sa better placement chances
@@ -80,10 +80,16 @@ export default class PuzzleGenerator {
    }
 
    // pang-generate sng complete puzzle na na-place na ang mga words kag filled na ang empty cells
-   static generatePuzzle(words: string[], gridSize: number): { grid: string[][], placedWords: string[], failedWords: string[] } {
+   static generatePuzzle(words: string[], gridSize: number): { 
+   grid: string[][], 
+   placedWords: string[], 
+   failedWords: string[], 
+   wordLocations: Map<string, Array<{startPos: {row: number, col: number}, direction: string, path: Array<{row: number, col: number}>}>>
+   } {
       const grid = this.generateGrid(gridSize);
       const placedWords: string[] = [];
       const failedWords: string[] = [];
+      
 
       // Place each word
       for (const word of words) {
@@ -97,34 +103,37 @@ export default class PuzzleGenerator {
 
       // Fill empty cells with random letters
       this.fillEmptyCells(grid);
-
-      return {
-         grid,
-         placedWords,
-         failedWords
-      };
-   }
-
-   // Alternative method - pang-generate lang sang grid with words, waay random letters pa
-   static generateGridWithWords(words: string[], gridSize: number): { grid: string[][], placedWords: string[], failedWords: string[] } {
-      const grid = this.generateGrid(gridSize);
-      const placedWords: string[] = [];
-      const failedWords: string[] = [];
-
-      // Place each word
-      for (const word of words) {
-         const success = this.placeWord(grid, word);
-         if (success) {
-            placedWords.push(word);
-         } else {
-            failedWords.push(word);
+      
+      const wordLocations = 
+         new Map<string, Array<{startPos: {row: number, col: number}, direction: string, path: Array<{row: number, col: number}>}>>();
+      
+      // gamit naton RABIN-KARP to verify nga tanan na words findable and get their locations
+      for (const word of placedWords) {
+         const searchResults = RabinKarpVerifier.searchWord(grid, word);
+         if (searchResults.length > 0) {
+            wordLocations.set(
+               word,
+               searchResults
+                  .filter(
+                     result =>
+                        result.startPos !== undefined &&
+                        result.direction !== undefined &&
+                        result.path !== undefined
+                  )
+                  .map(result => ({
+                     startPos: result.startPos as { row: number; col: number },
+                     direction: result.direction as string,
+                     path: result.path as Array<{ row: number; col: number }>
+                  }))
+            );
          }
       }
 
       return {
          grid,
          placedWords,
-         failedWords
+         failedWords,
+         wordLocations
       };
    }
 }
