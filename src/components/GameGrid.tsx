@@ -91,7 +91,7 @@ export const GameGrid: React.FC<GameGridProps> = ({
   };
 
   return (
-    <div
+    <section
       ref={gridRef}
       className="inline-block bg-white p-4 rounded-lg shadow-lg select-none"
       onMouseUp={onMouseUp}
@@ -124,6 +124,6 @@ export const GameGrid: React.FC<GameGridProps> = ({
           })
         )}
       </div>
-    </div>
+    </section>
   );
 };

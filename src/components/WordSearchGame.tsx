@@ -87,7 +87,7 @@ export default function WordSearchGame() {
           🎮 Loading Game...
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-6 xl:gap-8">
+        <main className="flex flex-col items-center gap-6 xl:gap-8">
           <div className="w-full max-w-7xl grid xl:grid-cols-[auto_auto] gap-6 justify-center items-start">
             <GameGrid
               grid={gameState.gameState.grid}
@@ -101,7 +101,7 @@ export default function WordSearchGame() {
           </div>
 
           <InfoCards />
-        </div>
+        </main>
       )}
     </div>
   );

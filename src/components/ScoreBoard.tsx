@@ -28,7 +28,7 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
   isGameComplete
 }) => {
   return (
-    <div className="flex flex-wrap justify-center gap-4 xl:gap-6 items-center mb-6 bg-white rounded-lg mx-[5%] p-4 shadow-md xl:px-[8%]">
+    <nav className="flex flex-wrap justify-center gap-4 xl:gap-6 items-center mb-6 bg-white rounded-2xl mx-[5%] p-4 shadow-md xl:px-[8%]">
       {/* Scores */}
       <div className="text-center flex-1 min-w-[120px]">
         <div className="text-2xl font-bold text-blue-600">
@@ -96,6 +96,6 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
           New Puzzle
         </button>
       </div>
-    </div>
+    </nav>
   );
 };

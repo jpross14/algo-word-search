@@ -7,7 +7,7 @@ interface WordListProps {
 
 export const WordList: React.FC<WordListProps> = ({ words }) => {
   return (
-    <div className="w-full max-w-sm xl:w-[22rem] self-start">
+    <section className="w-full max-w-sm xl:w-[22rem] self-start">
       <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Words to Find</h3>
         <div className="grid grid-cols-2 gap-2">
@@ -39,6 +39,6 @@ export const WordList: React.FC<WordListProps> = ({ words }) => {
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

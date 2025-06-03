@@ -15,7 +15,7 @@ export const WORD_CATEGORIES = {
       icon: '🍎'
    },
    'SINGERS': {
-      name: 'Singers',
+      name: 'Pop Stars',
       words: ['TAYLOR', 'RIHANNA', 'JANET', 'HAYLEY', 'GAGA', 'MARIAH', 'ARIANA', 'CELINE', 'WHITNEY', 'BEYONCE', 'SABRINA', 'OLIVIA'],
       icon: '🎤'
    },
