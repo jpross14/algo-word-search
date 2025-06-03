@@ -42,7 +42,7 @@ export const InfoCards: React.FC = () => {
       <article className="bg-purple-100 rounded-lg shadow-lg p-4 text-sm text-purple-800 flex-1 min-w-[220px] max-w-sm">
         <h4 className="font-semibold mb-2">🔬 Algorithm Features:</h4>
         <ul className="space-y-1">
-          <li>• Rolling hash for efficiency</li>
+          <li>• Rolling hash for validating puzzle integrity</li>
           <li>• O(n) average complexity</li>
           <li>• 8-directional search</li>
           <li>• Collision handling</li>

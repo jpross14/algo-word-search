@@ -1,5 +1,3 @@
-"use client";
-
 // pages/index.tsx
 import WordSearchGame from "@/components/WordSearchGame";
 
